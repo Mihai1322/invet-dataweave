@@ -28,27 +28,37 @@ jobs:
           VERSION="1.0.36"
           DW_DIR="$HOME/.dw"
 
-          echo "OS:"
-          uname -a
-
-          echo "Arhitectura:"
-          uname -m
+          echo "Instalez DataWeave CLI v${VERSION}..."
 
           mkdir -p "$DW_DIR/bin"
 
-          echo "Descarc DataWeave CLI v${VERSION}..."
-
           curl -fL \
             "https://github.com/mulesoft/data-weave-cli/releases/download/v${VERSION}/dw-${VERSION}-Linux" \
-            -o "$DW_DIR/bin/dw"
+            -o /tmp/dataweave.zip
+
+          echo "Verific arhiva..."
+          file /tmp/dataweave.zip
+
+          echo "Dezarhivez DataWeave CLI..."
+          unzip -o /tmp/dataweave.zip -d /tmp/dataweave
+
+          echo "Continutul arhivei:"
+          find /tmp/dataweave -type f -maxdepth 3 -print
+
+          echo "Caut executabilul dw..."
+
+          DW_BINARY=$(find /tmp/dataweave -type f -name "dw" | head -1)
+
+          if [ -z "$DW_BINARY" ]; then
+            echo "Nu am găsit executabilul dw în arhivă."
+            exit 1
+          fi
+
+          echo "Executabil găsit: $DW_BINARY"
+
+          cp "$DW_BINARY" "$DW_DIR/bin/dw"
 
           chmod +x "$DW_DIR/bin/dw"
-
-          echo "Tipul fisierului descarcat:"
-          file "$DW_DIR/bin/dw"
-
-          echo "Arhitectura ELF:"
-          readelf -h "$DW_DIR/bin/dw" | grep -E "Class|Machine"
 
           echo "$DW_DIR/bin" >> "$GITHUB_PATH"
 
