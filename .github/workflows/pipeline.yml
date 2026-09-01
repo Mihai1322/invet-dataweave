@@ -21,16 +21,42 @@ jobs:
           java-version: "17"
 
       - name: Instalare DataWeave CLI
+        shell: bash
         run: |
-          VERSION="1.0.36"
+          set -e
+
+          echo "Caut ultima versiune DataWeave CLI..."
+
+          API_URL="https://api.github.com/repos/mulesoft/data-weave-cli/releases/latest"
+
+          ASSET_URL=$(curl -fsSL "$API_URL" \
+            | python3 -c '
+          import sys, json
+
+          data = json.load(sys.stdin)
+
+          for asset in data["assets"]:
+              name = asset["name"].lower()
+              if "linux" in name and name.endswith(".zip"):
+                  print(asset["browser_download_url"])
+                  break
+          ')
+
+          if [ -z "$ASSET_URL" ]; then
+            echo "Nu am găsit un asset Linux pentru DataWeave CLI."
+            exit 1
+          fi
+
+          echo "Download: $ASSET_URL"
 
           mkdir -p "$HOME/.dw"
 
-          curl -L \
-            "https://github.com/mulesoft/data-weave-cli/releases/download/v${VERSION}/dw-linux-x64-v${VERSION}.zip" \
-            -o /tmp/dw.zip
+          curl -fL "$ASSET_URL" -o /tmp/dataweave.zip
 
-          unzip -o /tmp/dw.zip -d "$HOME/.dw"
+          echo "Verific arhiva..."
+          file /tmp/dataweave.zip
+
+          unzip -o /tmp/dataweave.zip -d "$HOME/.dw"
 
           echo "$HOME/.dw/bin" >> "$GITHUB_PATH"
 
@@ -38,8 +64,12 @@ jobs:
         run: |
           dw --version
 
+      - name: Validare script DataWeave
+        run: |
+          dw validate transformare.dw
+
       - name: Executare transformare DataWeave
         run: |
           dw run \
-            -i payload=input.json \
+            -i payload="$PWD/input.json" \
             "$(cat transformare.dw)"
