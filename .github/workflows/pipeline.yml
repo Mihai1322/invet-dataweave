@@ -67,4 +67,4 @@ jobs:
         run: |
           dw run \
             -i payload="$PWD/input.json" \
-            "$(cat transformare.dw)"
+            "$(cat transformare.dwl)"
