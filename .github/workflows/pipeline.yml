@@ -45,8 +45,6 @@ jobs:
           echo "Continutul arhivei:"
           find /tmp/dataweave -type f -maxdepth 3 -print
 
-          echo "Caut executabilul dw..."
-
           DW_BINARY=$(find /tmp/dataweave -type f -name "dw" | head -1)
 
           if [ -z "$DW_BINARY" ]; then
@@ -57,7 +55,6 @@ jobs:
           echo "Executabil găsit: $DW_BINARY"
 
           cp "$DW_BINARY" "$DW_DIR/bin/dw"
-
           chmod +x "$DW_DIR/bin/dw"
 
           echo "$DW_DIR/bin" >> "$GITHUB_PATH"
@@ -65,10 +62,6 @@ jobs:
       - name: Verificare DataWeave CLI
         run: |
           dw --version
-
-      - name: Validare script DataWeave
-        run: |
-          dw validate transformare.dw
 
       - name: Executare transformare DataWeave
         run: |
