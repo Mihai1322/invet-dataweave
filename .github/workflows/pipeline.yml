@@ -25,40 +25,20 @@ jobs:
         run: |
           set -e
 
-          echo "Caut ultima versiune DataWeave CLI..."
+          VERSION="1.0.36"
+          DW_DIR="$HOME/.dw"
 
-          API_URL="https://api.github.com/repos/mulesoft/data-weave-cli/releases/latest"
+          echo "Instalez DataWeave CLI v${VERSION}..."
 
-          ASSET_URL=$(curl -fsSL "$API_URL" \
-            | python3 -c '
-          import sys, json
+          mkdir -p "$DW_DIR/bin"
 
-          data = json.load(sys.stdin)
+          curl -fL \
+            "https://github.com/mulesoft/data-weave-cli/releases/download/v${VERSION}/dw-${VERSION}-Linux" \
+            -o "$DW_DIR/bin/dw"
 
-          for asset in data["assets"]:
-              name = asset["name"].lower()
-              if "linux" in name and name.endswith(".zip"):
-                  print(asset["browser_download_url"])
-                  break
-          ')
+          chmod +x "$DW_DIR/bin/dw"
 
-          if [ -z "$ASSET_URL" ]; then
-            echo "Nu am găsit un asset Linux pentru DataWeave CLI."
-            exit 1
-          fi
-
-          echo "Download: $ASSET_URL"
-
-          mkdir -p "$HOME/.dw"
-
-          curl -fL "$ASSET_URL" -o /tmp/dataweave.zip
-
-          echo "Verific arhiva..."
-          file /tmp/dataweave.zip
-
-          unzip -o /tmp/dataweave.zip -d "$HOME/.dw"
-
-          echo "$HOME/.dw/bin" >> "$GITHUB_PATH"
+          echo "$DW_DIR/bin" >> "$GITHUB_PATH"
 
       - name: Verificare DataWeave CLI
         run: |
